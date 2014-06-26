@@ -33,8 +33,16 @@ public class AsyncEventBus extends EventBus{
 
 	@Override
 	public void post(Object event) {
-		
-		super.post(event);
+		executor.execute(new Runnable() {
+			private Object event;
+			public Runnable setEvent(Object event) {
+				this.event = event;
+				return this;
+			}
+			public void run() {
+				AsyncEventBus.this.bus.post(event);
+			}
+		}.setEvent(event));
 	}
 
 	@Override

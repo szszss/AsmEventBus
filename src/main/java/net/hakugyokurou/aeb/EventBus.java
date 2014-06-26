@@ -23,6 +23,7 @@ import org.objectweb.asm.Opcodes;
 public class EventBus {
 	
 	protected final String id;
+	protected final EnumHierarchyStrategy hierarchyStrategy;
 	protected final ISubscriberFinder subscriberFinder;
 	
 	protected static Map<Method, EventInvoker> eventInvokerCache = Collections.synchronizedMap(new WeakHashMap<Method, EventInvoker>(64));
@@ -40,7 +41,16 @@ public class EventBus {
 	}
 	
 	public EventBus(String name, ISubscriberFinder finder) {
+		this(name, EnumHierarchyStrategy.EXTENDED_FIRST, getDefaultSubscriberFinder());
+	}
+	
+	public EventBus(String name, EnumHierarchyStrategy hierarchyStrategy) {
+		this(name, hierarchyStrategy, getDefaultSubscriberFinder());
+	}
+	
+	public EventBus(String name, EnumHierarchyStrategy hierarchyStrategy, ISubscriberFinder finder) {
 		this.id = name;
+		this.hierarchyStrategy = hierarchyStrategy;
 		this.subscriberFinder = finder;
 	}
 	
@@ -85,7 +95,8 @@ public class EventBus {
 		}
 		if(dispatcher==null)
 		{
-			dispatcher = new EventDispatcher(this, event);
+			dispatcher = hierarchyStrategy==EnumHierarchyStrategy.EXTENDED_FIRST?
+					new EventDispatcher.SPEventDispatcherEF(this, event):new EventDispatcher.SPEventDispatcherSF(this, event);
 			eventMappingInvokerLock.writeLock().lock();
 			try {
 				dealHierarchy(dispatcher);
