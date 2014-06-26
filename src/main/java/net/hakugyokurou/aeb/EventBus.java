@@ -85,9 +85,10 @@ public class EventBus {
 		}
 		if(dispatcher==null)
 		{
-			dispatcher = new EventDispatcher();
+			dispatcher = new EventDispatcher(this, event);
 			eventMappingInvokerLock.writeLock().lock();
 			try {
+				dealHierarchy(dispatcher);
 				eventMappingInvoker.put(event, dispatcher);
 			}
 			finally {
@@ -95,6 +96,37 @@ public class EventBus {
 			}
 		}
 		dispatcher.addReceiver(handler, invoker);
+	}
+	
+	protected final void dealHierarchy(EventDispatcher dispatcher) {
+		for(EventDispatcher o2 : eventMappingInvoker.values())
+		{
+			if(o2.isSuper(dispatcher))
+			{
+				if(dispatcher.getParent()==null || o2.isSuper(dispatcher.getParent()))
+				{
+					dispatcher.setParent(o2);
+				}
+			}
+			else if(dispatcher.isSuper(o2))
+			{
+				if(o2.getParent()==null  || dispatcher.isSuper(o2.getParent()))
+				{
+					o2.setParent(dispatcher);
+				}
+			}
+				
+		}
+	}
+	
+	protected final void repairHierarchy(EventDispatcher dispatcher) {
+		eventMappingInvokerLock.writeLock().lock();
+		try {
+			dealHierarchy(dispatcher);
+		}
+		finally {
+			eventMappingInvokerLock.writeLock().unlock();
+		}
 	}
 	
 	public void unregister(Object handler) {

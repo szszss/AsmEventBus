@@ -1,5 +1,6 @@
 package net.hakugyokurou.aeb;
 
+import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -7,10 +8,38 @@ import java.util.concurrent.CopyOnWriteArrayList;
 class EventDispatcher{
 
 	protected List<Entry> entries = new CopyOnWriteArrayList<Entry>();
+	protected WeakReference<EventDispatcher> parentDispatcher = new WeakReference<EventDispatcher>(null);
+	protected boolean hasParent = false;
+	protected final WeakReference<Class<?>> eventType;
+	protected final EventBus bus;
+	
+	public EventDispatcher(EventBus bus, Class<?> eventType) {
+		this.bus = bus;
+		this.eventType = new WeakReference<Class<?>>(eventType);
+	}
+	
+	/**
+	 * Return that if left-value's event is the super class of right-value's event.<br/>
+	 * @param o2 the right-value
+	 * @return
+	 */
+	public final boolean isSuper(EventDispatcher o2) {
+		return o2.eventType.get().isAssignableFrom(this.eventType.get());
+	}
+	
+	public final EventDispatcher getParent() {
+		return parentDispatcher.get();
+	}
+	
+	public final void setParent(EventDispatcher dispatcher) {
+		hasParent = true;
+		parentDispatcher = new WeakReference<EventDispatcher>(dispatcher);
+	}
 	
 	public boolean post(Object event) {
+		boolean parentPosted = postParent(event);
 		if(entries.isEmpty())
-			return false;
+			return parentPosted||false;
 		Iterator<Entry> iterator = entries.iterator(); 
 		for(;iterator.hasNext();)
 		{
@@ -18,6 +47,24 @@ class EventDispatcher{
 			entry.invoker.invoke(entry.receiver, event);
 		}
 		return true;
+	}
+	
+	protected final boolean postParent(Object event) {
+		if(hasParent)
+		{
+			EventDispatcher parent = parentDispatcher.get();
+			if(parent!=null)
+			{
+				return parent.post(event);
+			}
+			else
+			{
+				hasParent = false;
+				bus.repairHierarchy(this);
+				return postParent(event);
+			}
+		}
+		return false;
 	}
 	
 	void addReceiver(Object receiver, EventInvoker invoker) {
@@ -55,5 +102,8 @@ class EventDispatcher{
 
 	static class PriorEventDispatcher extends EventDispatcher {
 		
+		public PriorEventDispatcher(EventBus bus, Class<?> eventType) {
+			super(bus, eventType);
+		}
 	}
 }

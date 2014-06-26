@@ -5,15 +5,15 @@ import java.lang.reflect.Method;
 //Prioritized
 public class PriorEventBus extends EventBus{
 
-	public PriorEventBus(IPriorityJudges judges) {
+	public PriorEventBus(IPriorityStrategy judges) {
 		this(getName(),judges);
 	}
 
-	public PriorEventBus(String name, IPriorityJudges judges) {
+	public PriorEventBus(String name, IPriorityStrategy judges) {
 		this(name, getDefaultSubscriberFinder(), judges);
 	}
 	
-	public PriorEventBus(String name, ISubscriberFinder finder, IPriorityJudges judges) {
+	public PriorEventBus(String name, ISubscriberFinder finder, IPriorityStrategy judges) {
 		super(name, finder);
 	}
 
