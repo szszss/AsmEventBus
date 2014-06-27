@@ -2,7 +2,6 @@ package net.hakugyokurou.aeb;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.Executor;
-import java.util.concurrent.locks.Lock;
 
 public class AsyncEventBus extends EventBus{
 

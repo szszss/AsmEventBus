@@ -1,15 +1,9 @@
 package net.hakugyokurou.aeb;
 
-import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -63,11 +57,11 @@ public class EventBus {
 	}
 	
 	public void register(Object handler) {
-		Class klass = handler.getClass();
+		Class<?> klass = handler.getClass();
 		Method[] methods = subscriberFinder.findSubscribers(klass);
 		boolean hasError = false; //TODO:What should we do if there are wrong things?
 		for(Method method : methods) {
-			Class event = method.getParameterTypes()[0];
+			Class<?> event = method.getParameterTypes()[0];
 			EventInvoker invoker = eventInvokerCache.get(method);
 			if(invoker==null)
 			{
@@ -141,11 +135,11 @@ public class EventBus {
 	}
 	
 	public void unregister(Object handler) {
-		Class klass = handler.getClass();
+		Class<?> klass = handler.getClass();
 		Method[] methods = subscriberFinder.findSubscribers(klass);
 		boolean hasError = false;
 		for(Method method : methods) {
-			Class event = method.getParameterTypes()[0];
+			Class<?> event = method.getParameterTypes()[0];
 			EventInvoker invoker = eventInvokerCache.get(method);
 			if(invoker==null)
 			{
@@ -172,7 +166,7 @@ public class EventBus {
 		EventDispatcher dispatcher;
 		eventMappingInvokerLock.readLock().lock();
 		try {
-			dispatcher = eventMappingInvoker.get(event);
+			dispatcher = eventMappingInvoker.get(event.getClass());
 		}
 		finally {
 			eventMappingInvokerLock.readLock().unlock();
@@ -196,7 +190,7 @@ public class EventBus {
 		protected static String CONST_PARAMS = "(Ljava/lang/Object;Ljava/lang/Object;)V";
 		protected static String CONST_LV = "Ljava/lang/Object;";
 		
-		public static EventInvoker generateInvoker(Class handler, Method subscriber, Class event) throws AEBRegisterException {
+		public static EventInvoker generateInvoker(Class<?> handler, Method subscriber, Class<?> event) throws AEBRegisterException {
 			String handlerName = handler.getName().replace('.', '/');
 			String invokerName = handlerName+"_Invoker_"+subscriber.getName()+"_"+Math.abs(subscriber.hashCode());
 			String invokerName2 = invokerName.replace('/', '.'); //Too silly...Someone makes it smart, please.
@@ -245,7 +239,7 @@ public class EventBus {
 				unaccessible = !define.isAccessible();
 				if(unaccessible)
 					define.setAccessible(true);
-				klass = ((Class)define.invoke(cl, invokerName2,bytes,0,bytes.length)).newInstance();
+				klass = ((Class<?>)define.invoke(cl, invokerName2,bytes,0,bytes.length)).newInstance();
 			} catch (Exception e) {
 				throw new AEBRegisterException(e);
 			} finally {
