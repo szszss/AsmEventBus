@@ -13,7 +13,9 @@ subprojects {
     }
 
 	sourceCompatibility = 1.5
-    version = '0.1.0'
+    group = 'net.hakugyokurou.aeb'
+	//name = 'AsmEventBus'
+	version = "0.1"
 
     jar {
         manifest.attributes provider: 'szszss'

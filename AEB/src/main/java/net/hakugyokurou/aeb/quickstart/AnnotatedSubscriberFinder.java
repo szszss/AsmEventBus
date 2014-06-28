@@ -1,8 +1,10 @@
-package net.hakugyokurou.aeb;
+package net.hakugyokurou.aeb.quickstart;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+
+import net.hakugyokurou.aeb.strategy.ISubscriberFinder;
 
 public class AnnotatedSubscriberFinder implements ISubscriberFinder{
 	

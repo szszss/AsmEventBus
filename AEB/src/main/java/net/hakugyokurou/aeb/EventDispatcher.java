@@ -25,7 +25,7 @@ abstract class EventDispatcher{
 	 * @return
 	 */
 	public final boolean isSuper(EventDispatcher o2) {
-		return o2.eventType.get().isAssignableFrom(this.eventType.get());
+		return this.eventType.get().isAssignableFrom(o2.eventType.get());
 	}
 	
 	public final EventDispatcher getParent() {

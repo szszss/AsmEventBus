@@ -1,3 +1,16 @@
+
 dependencies {
 	compile group: 'org.ow2.asm', name: 'asm', version: '5.0.3'
+}
+
+jar {
+        baseName = 'asmeventbus'
+}
+
+uploadArchives {
+    repositories {
+        flatDir {
+            dirs '../build'
+        }
+    }
 }

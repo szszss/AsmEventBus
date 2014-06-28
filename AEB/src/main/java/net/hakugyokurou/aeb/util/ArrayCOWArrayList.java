@@ -32,7 +32,7 @@ public class ArrayCOWArrayList<E> {
 	
 	public void add(E value, int section) {
 		if(section<0 || section>=this.sections)
-			throw new IndexOutOfBoundsException("Section:"+section+" is out of <0-"+sections+">.");
+			throw new IndexOutOfBoundsException("Section:"+section+" is out of <0-"+(sections-1)+">.");
 		arrays[section].add(value);
 		size++;
 	}

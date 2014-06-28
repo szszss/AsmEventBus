@@ -1,4 +1,4 @@
-package net.hakugyokurou.aeb;
+package net.hakugyokurou.aeb.strategy;
 
 import java.lang.reflect.Method;
 

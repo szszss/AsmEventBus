@@ -4,10 +4,15 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import net.hakugyokurou.aeb.exception.AEBRegisterException;
+import net.hakugyokurou.aeb.quickstart.AnnotatedSubscriberFinder;
+import net.hakugyokurou.aeb.quickstart.EventSubscriber;
+import net.hakugyokurou.aeb.strategy.EnumHierarchyStrategy;
+import net.hakugyokurou.aeb.strategy.ISubscriberFinder;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -16,7 +21,10 @@ import org.objectweb.asm.Opcodes;
 
 public class EventBus {
 	
-	protected final String id;
+	private static final AtomicInteger ID_GENERATOR = new AtomicInteger(0);
+	
+	protected final transient int id;
+	protected final String name;
 	protected final EnumHierarchyStrategy hierarchyStrategy;
 	protected final ISubscriberFinder subscriberFinder;
 	
@@ -27,7 +35,7 @@ public class EventBus {
 	
 	
 	public EventBus() {
-		this(getName());
+		this(null);
 	}
 	
 	public EventBus(String name) {
@@ -35,7 +43,7 @@ public class EventBus {
 	}
 	
 	public EventBus(String name, ISubscriberFinder finder) {
-		this(name, EnumHierarchyStrategy.EXTENDED_FIRST, getDefaultSubscriberFinder());
+		this(name, EnumHierarchyStrategy.EXTENDED_FIRST, finder);
 	}
 	
 	public EventBus(String name, EnumHierarchyStrategy hierarchyStrategy) {
@@ -43,7 +51,8 @@ public class EventBus {
 	}
 	
 	public EventBus(String name, EnumHierarchyStrategy hierarchyStrategy, ISubscriberFinder finder) {
-		this.id = name;
+		this.id = ID_GENERATOR.getAndIncrement();
+		this.name = name==null?getName():name;
 		this.hierarchyStrategy = hierarchyStrategy;
 		this.subscriberFinder = finder;
 	}

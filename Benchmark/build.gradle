@@ -1,0 +1,4 @@
+dependencies {
+	compile project(':AEB')
+	compile group: 'com.google.guava', name: 'guava', version: '17.0'
+}

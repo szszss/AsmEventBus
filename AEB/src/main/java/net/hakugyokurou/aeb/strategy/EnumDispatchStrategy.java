@@ -1,4 +1,4 @@
-package net.hakugyokurou.aeb;
+package net.hakugyokurou.aeb.strategy;
 
 public enum EnumDispatchStrategy {
 	HIERARCHY_FIRST,
