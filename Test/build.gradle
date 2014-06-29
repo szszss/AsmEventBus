@@ -1,3 +1,4 @@
 dependencies {
 	compile project(':AEB')
+	testCompile 'junit:junit:4.8.2'
 }

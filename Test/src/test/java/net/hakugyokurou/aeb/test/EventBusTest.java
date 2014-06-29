@@ -3,13 +3,12 @@ package net.hakugyokurou.aeb.test;
 import static org.junit.Assert.*;
 import net.hakugyokurou.aeb.DeadEvent;
 import net.hakugyokurou.aeb.EventBus;
+import net.hakugyokurou.aeb.auxiliary.IDeadEventHandler;
 import net.hakugyokurou.aeb.quickstart.EventSubscriber;
 import net.hakugyokurou.aeb.strategy.EnumHierarchyStrategy;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import com.sun.org.apache.bcel.internal.generic.NEW;
 
 public class EventBusTest {
 	
@@ -63,15 +62,16 @@ public class EventBusTest {
 	@Test
 	public void testEBDeadEvent() {
 		EventBus subject = new EventBus();
+		subject.setDeadEventHandler(new DeadEventHandler());
 		Handler3 handler3 = new Handler3();
 		subject.post(Integer.valueOf(1));
-		assertEquals(0, testNumber);
+		assertEquals(10, testNumber);
 		subject.register(handler3);
 		subject.post(Integer.valueOf(1));
 		assertEquals(1, testNumber);
 		subject.unregister(handler3);
 		subject.post(Integer.valueOf(0));
-		assertEquals(1, testNumber);
+		assertEquals(10, testNumber);
 	}
 	
 	private class Handler1 {	
@@ -97,9 +97,15 @@ public class EventBusTest {
 	
 	private class Handler3 {	
 		@EventSubscriber
-		public void getDeadEvent(DeadEvent e) {
-			testNumber = (Integer)e.event;
+		public void getDeadEvent(Integer e) {
+			testNumber = (Integer)e;
 		}
 	}
+	
+	private class DeadEventHandler implements IDeadEventHandler {
 
+		public void handleDeadEvent(EventBus eventBus, Object event) {
+			testNumber = 10;
+		}	
+	}
 }

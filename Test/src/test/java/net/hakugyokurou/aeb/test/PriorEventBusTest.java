@@ -94,17 +94,14 @@ public class PriorEventBusTest {
 			this.dispatchStrategy = dispatchStrategy;
 		}
 		
-		@Override
 		public int getPriorities() {
 			return max;
 		}
 
-		@Override
 		public EnumDispatchStrategy getDispatchStrategy() {
 			return dispatchStrategy;
 		}
 
-		@Override
 		public int judgePriority(Method subscriber) {
 			TestPriority p = subscriber.getAnnotation(TestPriority.class);
 			if(p!=null)

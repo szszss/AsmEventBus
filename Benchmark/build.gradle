@@ -1,4 +1,5 @@
 dependencies {
 	compile project(':AEB')
-	compile group: 'com.google.guava', name: 'guava', version: '17.0'
+	testCompile 'junit:junit:4.8.2'
+	testCompile 'com.google.guava:guava:17.0'
 }
