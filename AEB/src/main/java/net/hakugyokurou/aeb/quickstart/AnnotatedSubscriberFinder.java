@@ -1,10 +1,14 @@
-package net.hakugyokurou.aeb;
+package net.hakugyokurou.aeb.quickstart;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-public class AnnotatedSubscriberFinder implements ISubscriberFinder{
+import net.hakugyokurou.aeb.strategy.ISubscriberStrategy;
+
+public class AnnotatedSubscriberFinder implements ISubscriberStrategy{
+	
+	public static final AnnotatedSubscriberFinder QUICKSTART_SINGLETON = new AnnotatedSubscriberFinder(EventSubscriber.class);
 	
 	protected final Class<? extends Annotation> annotation;
 	
@@ -12,7 +16,16 @@ public class AnnotatedSubscriberFinder implements ISubscriberFinder{
 		this.annotation = annotation;
 	}
 
-	public Method[] findSubscribers(Class<?> klass) {
+	public boolean isDependOnInstance() {
+		return false;
+	}
+
+	public Method[] findSubscribers(Object handler) {
+		Class<?> klass;
+		if(handler instanceof Class<?>)
+			klass = (Class<?>)handler;
+		else 
+			klass = handler.getClass();
 		Method[] methods = klass.getMethods();
 		ArrayList<Method> cache = new ArrayList<Method>(methods.length);
 		for(Method method : methods)

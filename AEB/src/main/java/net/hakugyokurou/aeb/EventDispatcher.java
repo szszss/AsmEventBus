@@ -25,7 +25,7 @@ abstract class EventDispatcher{
 	 * @return
 	 */
 	public final boolean isSuper(EventDispatcher o2) {
-		return o2.eventType.get().isAssignableFrom(this.eventType.get());
+		return this.eventType.get().isAssignableFrom(o2.eventType.get());
 	}
 	
 	public final EventDispatcher getParent() {
@@ -113,7 +113,11 @@ abstract class EventDispatcher{
 			for(;iterator.hasNext();)
 			{
 				Entry entry = iterator.next();
-				entry.invoker.invoke(entry.receiver, event);
+				try {
+					entry.invoker.invoke(entry.receiver, event);
+				} catch (Throwable e) {
+					bus.getSubscriberExceptionHandler().handleSubscriberException(bus, entry.receiver, entry.invoker.getSubscriber(), event, e);
+				}
 			}
 		}
 	}
@@ -167,6 +171,14 @@ abstract class EventDispatcher{
 			Entry entry = new Entry(receiver,invoker);
 			cowals.remove(entry);
 		}
+		
+		protected final void invokeSomeone(Entry entry, Object event) {
+			try {
+				entry.invoker.invoke(entry.receiver, event);
+			} catch (Throwable e) {
+				bus.getSubscriberExceptionHandler().handleSubscriberException(bus, entry.receiver, entry.invoker.getSubscriber(), event, e);
+			}
+		}
 	}
 	
 	static class MPEventDispatcherPFSF extends MultiPrioritiesEventDispatcher {
@@ -188,7 +200,7 @@ abstract class EventDispatcher{
 				for(;iterator.hasNext();)
 				{
 					Entry entry = iterator.next();
-					entry.invoker.invoke(entry.receiver, event);
+					invokeSomeone(entry,event);
 				}
 			}
 			return true;
@@ -214,7 +226,7 @@ abstract class EventDispatcher{
 				for(;iterator.hasNext();)
 				{
 					Entry entry = iterator.next();
-					entry.invoker.invoke(entry.receiver, event);
+					invokeSomeone(entry,event);
 				}
 			}
 			return true;
@@ -244,7 +256,7 @@ abstract class EventDispatcher{
 				for(;iterator.hasNext();)
 				{
 					Entry entry = iterator.next();
-					entry.invoker.invoke(entry.receiver, event);
+					invokeSomeone(entry,event);
 				}
 				return true;
 			}
@@ -269,7 +281,7 @@ abstract class EventDispatcher{
 				for(;iterator.hasNext();)
 				{
 					Entry entry = iterator.next();
-					entry.invoker.invoke(entry.receiver, event);
+					invokeSomeone(entry,event);
 				}
 			}
 			postParent(event);

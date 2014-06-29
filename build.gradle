@@ -9,11 +9,18 @@ subprojects {
     }
 
     dependencies {
-        testCompile 'junit:junit:4.8.2'
+    }
+    
+    eclipse {
+  		jdt {
+    		sourceCompatibility = 1.5
+    		targetCompatibility = 1.5
+    	}
     }
 
 	sourceCompatibility = 1.5
-    version = '0.1.0'
+    group = 'net.hakugyokurou.aeb'
+	version = "0.1"
 
     jar {
         manifest.attributes provider: 'szszss'

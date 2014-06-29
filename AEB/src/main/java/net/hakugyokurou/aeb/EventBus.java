@@ -2,12 +2,23 @@ package net.hakugyokurou.aeb;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Logger;
 
+import net.hakugyokurou.aeb.auxiliary.IDeadEventHandler;
+import net.hakugyokurou.aeb.auxiliary.ISubscriberExceptionHandler;
 import net.hakugyokurou.aeb.exception.AEBRegisterException;
+import net.hakugyokurou.aeb.quickstart.AnnotatedSubscriberFinder;
+import net.hakugyokurou.aeb.quickstart.EventSubscriber;
+import net.hakugyokurou.aeb.quickstart.LoggingSubscriberExceptionHandler;
+import net.hakugyokurou.aeb.quickstart.SilentDeadEventHandler;
+import net.hakugyokurou.aeb.strategy.EnumHierarchyStrategy;
+import net.hakugyokurou.aeb.strategy.ISubscriberStrategy;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -16,49 +27,121 @@ import org.objectweb.asm.Opcodes;
 
 public class EventBus {
 	
-	protected final String id;
+	private static final AtomicInteger ID_GENERATOR = new AtomicInteger(0);
+	
+	protected final transient int id;
+	protected final String name;
 	protected final EnumHierarchyStrategy hierarchyStrategy;
-	protected final ISubscriberFinder subscriberFinder;
+	protected final ISubscriberStrategy subscriberStrategy;
+	protected final boolean baseOnInstance;
+	
+	protected IDeadEventHandler deadEventHandler;
+	protected ISubscriberExceptionHandler exceptionHandler;
+	protected Logger logger;
 	
 	protected static Map<Method, EventInvoker> eventInvokerCache = Collections.synchronizedMap(new WeakHashMap<Method, EventInvoker>(64));
 	
 	protected Map<Class<?>, EventDispatcher> eventMappingInvoker = new WeakHashMap<Class<?>, EventDispatcher>();
 	protected ReadWriteLock eventMappingInvokerLock = new ReentrantReadWriteLock();
 	
+	protected Map<Object, Method[]> handlerMappingMethods = Collections.synchronizedMap(new WeakHashMap<Object, Method[]>());
+	
 	
 	public EventBus() {
-		this(getName());
+		this(null);
 	}
 	
 	public EventBus(String name) {
-		this(name, getDefaultSubscriberFinder());
+		this(name, getDefaultSubscriberStrategy());
 	}
 	
-	public EventBus(String name, ISubscriberFinder finder) {
-		this(name, EnumHierarchyStrategy.EXTENDED_FIRST, getDefaultSubscriberFinder());
+	public EventBus(String name, ISubscriberStrategy subscriberStrategy) {
+		this(name, EnumHierarchyStrategy.EXTENDED_FIRST, subscriberStrategy);
 	}
 	
 	public EventBus(String name, EnumHierarchyStrategy hierarchyStrategy) {
-		this(name, hierarchyStrategy, getDefaultSubscriberFinder());
+		this(name, hierarchyStrategy, getDefaultSubscriberStrategy());
 	}
 	
-	public EventBus(String name, EnumHierarchyStrategy hierarchyStrategy, ISubscriberFinder finder) {
-		this.id = name;
+	public EventBus(String name, EnumHierarchyStrategy hierarchyStrategy, ISubscriberStrategy subscriberStrategy) {
+		this.id = ID_GENERATOR.getAndIncrement();
+		this.name = name==null?getDefaultName():name;
 		this.hierarchyStrategy = hierarchyStrategy;
-		this.subscriberFinder = finder;
+		this.subscriberStrategy = subscriberStrategy;
+		this.baseOnInstance = subscriberStrategy.isDependOnInstance();
 	}
 	
-	protected synchronized static String getName() {
+	protected synchronized static String getDefaultName() {
 		return "EventBus"+(System.nanoTime()%10000L);
 	}
 	
-	public static ISubscriberFinder getDefaultSubscriberFinder() {
-		return new AnnotatedSubscriberFinder(EventSubscriber.class);
+	public static ISubscriberStrategy getDefaultSubscriberStrategy() {
+		return AnnotatedSubscriberFinder.QUICKSTART_SINGLETON;
+	}
+	
+	public static IDeadEventHandler getDefaultDeadEventHandler() {
+		return SilentDeadEventHandler.QUICKSTART_SINGLETON;
+	}
+	
+	public static ISubscriberExceptionHandler getDefaultSubscriberExceptionHandler() {
+		return LoggingSubscriberExceptionHandler.QUICKSTART_SINGLETON;
+	}
+	
+	public static Logger getDefaultLogger(EventBus eventBus) {
+		return Logger.getLogger(eventBus.getClass().getName()+"."+eventBus.getName());
+	}
+	
+	public synchronized void setDeadEventHandler(IDeadEventHandler deadEventHandler) {
+		this.deadEventHandler = deadEventHandler;
+	}
+	
+	public synchronized void setSubscriberExceptionHandler(ISubscriberExceptionHandler exceptionHandler) {
+		this.exceptionHandler = exceptionHandler;
+	}
+	
+	public synchronized void setLogger(Logger logger) {
+		this.logger = logger;
+	}
+	
+	public int getId() {
+		return id;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public EnumHierarchyStrategy getHierarchyStrategy() {
+		return hierarchyStrategy;
+	}
+	
+	public ISubscriberStrategy getSubscriberStrategy() {
+		return subscriberStrategy;
+	}
+	
+	public synchronized IDeadEventHandler getDeadEventHandler() {
+		if(deadEventHandler==null)
+			deadEventHandler = getDefaultDeadEventHandler();
+		return deadEventHandler;
+	}
+	
+	public synchronized ISubscriberExceptionHandler getSubscriberExceptionHandler() {
+		if(exceptionHandler==null)
+			exceptionHandler = getDefaultSubscriberExceptionHandler();
+		return exceptionHandler;
+	}
+	
+	public synchronized Logger getLogger() {
+		if(logger==null)
+			logger = getDefaultLogger(this);
+		return logger;
 	}
 	
 	public void register(Object handler) {
-		Class<?> klass = handler.getClass();
-		Method[] methods = subscriberFinder.findSubscribers(klass);
+		Class<?> klass = handler instanceof Class ? (Class)handler : handler.getClass();
+		Method[] methods = subscriberStrategy.findSubscribers(handler);
+		//EventInvoker[] invokers = new EventInvoker[methods.length];
+		//int index=0;
 		boolean hasError = false; //TODO:What should we do if there are wrong things?
 		for(Method method : methods) {
 			Class<?> event = method.getParameterTypes()[0];
@@ -68,6 +151,7 @@ public class EventBus {
 				try {
 					invoker = InvokerGenerator.generateInvoker(klass, method, event);
 					eventInvokerCache.put(method, invoker);
+					//invokers[index++] = invoker;
 				} catch (AEBRegisterException e) {
 					e.printStackTrace();
 					hasError = true;
@@ -76,6 +160,7 @@ public class EventBus {
 			}
 			addReceiver(event, handler, method, invoker);
 		}
+		handlerMappingMethods.put(handler, methods);
 	}
 	
 	protected void addReceiver(Class<?> event, Object handler, Method subscriber, EventInvoker invoker) {
@@ -135,8 +220,13 @@ public class EventBus {
 	}
 	
 	public void unregister(Object handler) {
-		Class<?> klass = handler.getClass();
-		Method[] methods = subscriberFinder.findSubscribers(klass);
+		Class<?> klass = handler instanceof Class ? (Class)handler : handler.getClass();
+		Method[] methods = handlerMappingMethods.get(handler);
+		if(methods==null)
+		{
+			//TODO:DO SOMETHINGS
+			return;
+		}
 		boolean hasError = false;
 		for(Method method : methods) {
 			Class<?> event = method.getParameterTypes()[0];
@@ -176,9 +266,9 @@ public class EventBus {
 		{
 			dead = !dispatcher.post(event);
 		}
-		if(dead && !(event instanceof DeadEvent))
+		if(dead)
 		{
-			post(new DeadEvent(event));
+			getDeadEventHandler().handleDeadEvent(this, event);
 		}
 	}
 	
@@ -199,36 +289,51 @@ public class EventBus {
 			ClassLoader cl = handler.getClassLoader();
 			ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 			cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, invokerName, null, CLASS_NAME_EventInvoker, null);
-			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
-			mv.visitCode();
-			mv.visitVarInsn(Opcodes.ALOAD, 0);
-			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, CLASS_NAME_EventInvoker, "<init>", "()V", false);
-			mv.visitInsn(Opcodes.RETURN);
-			mv.visitMaxs(0, 0);
-			mv.visitEnd();
-			mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "invoke", CONST_PARAMS, null, null);
-			mv.visitCode();
-			Label l0 = new Label();
-			mv.visitLabel(l0);
-			mv.visitLineNumber(7, l0);
-			mv.visitVarInsn(Opcodes.ALOAD, 1);
-			mv.visitTypeInsn(Opcodes.CHECKCAST, handlerName);
-			mv.visitVarInsn(Opcodes.ALOAD, 2);
-			mv.visitTypeInsn(Opcodes.CHECKCAST, eventName);
-			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, handlerName, subscriber.getName(), "(L"+eventName+";)V", false);
-			Label l1 = new Label();
-			mv.visitLabel(l1);
-			mv.visitLineNumber(8, l1);
-			mv.visitInsn(Opcodes.RETURN);
-			Label l2 = new Label();
-			mv.visitLabel(l2);
-			mv.visitLocalVariable("this", "L"+invokerName+";", null, l0, l2, 0);
-			mv.visitLocalVariable("receiver", "Ljava/lang/Object;", null, l0, l2, 1);
-			mv.visitLocalVariable("event", CONST_LV, null, l0, l2, 2);
-			mv.visitMaxs(2, 3);
-			mv.visitEnd(); //Were these written by me? Fucking of course not. They were proudly generated by Bytecode Outline!
+			{
+				MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "(Ljava/lang/reflect/Method;)V", null, null);
+				mv.visitCode();
+				Label l0 = new Label();
+				mv.visitLabel(l0);
+				mv.visitLineNumber(27, l0);
+				mv.visitVarInsn(Opcodes.ALOAD, 0);
+				mv.visitVarInsn(Opcodes.ALOAD, 1);
+				mv.visitMethodInsn(Opcodes.INVOKESPECIAL, CLASS_NAME_EventInvoker, "<init>", "(Ljava/lang/reflect/Method;)V", false);
+				Label l1 = new Label();
+				mv.visitLabel(l1);
+				mv.visitLineNumber(28, l1);
+				mv.visitInsn(Opcodes.RETURN);
+				Label l2 = new Label();
+				mv.visitLabel(l2);
+				mv.visitLocalVariable("this", "L"+invokerName+";", null, l0, l2, 0);
+				mv.visitLocalVariable("subscriber", "Ljava/lang/reflect/Method;", null, l0, l2, 1);
+				mv.visitMaxs(2, 2);
+				mv.visitEnd();
+			}
+			{
+				MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "invoke", CONST_PARAMS, null, null);
+				mv.visitCode();
+				Label l0 = new Label();
+				mv.visitLabel(l0);
+				mv.visitLineNumber(7, l0);
+				mv.visitVarInsn(Opcodes.ALOAD, 1);
+				mv.visitTypeInsn(Opcodes.CHECKCAST, handlerName);
+				mv.visitVarInsn(Opcodes.ALOAD, 2);
+				mv.visitTypeInsn(Opcodes.CHECKCAST, eventName);
+				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, handlerName, subscriber.getName(), "(L"+eventName+";)V", false);
+				Label l1 = new Label();
+				mv.visitLabel(l1);
+				mv.visitLineNumber(8, l1);
+				mv.visitInsn(Opcodes.RETURN);
+				Label l2 = new Label();
+				mv.visitLabel(l2);
+				mv.visitLocalVariable("this", "L"+invokerName+";", null, l0, l2, 0);
+				mv.visitLocalVariable("receiver", "Ljava/lang/Object;", null, l0, l2, 1);
+				mv.visitLocalVariable("event", CONST_LV, null, l0, l2, 2);
+				mv.visitMaxs(2, 3);
+				mv.visitEnd();
+			}
 			cw.visitEnd();
-			
+			//Were these written by me? Fucking of course not. They were proudly generated by Bytecode Outline!
 			byte[] bytes = cw.toByteArray();
 			Method define = null;
 			Object klass;
@@ -239,7 +344,7 @@ public class EventBus {
 				unaccessible = !define.isAccessible();
 				if(unaccessible)
 					define.setAccessible(true);
-				klass = ((Class<?>)define.invoke(cl, invokerName2,bytes,0,bytes.length)).newInstance();
+				klass = ((Class<?>)define.invoke(cl, invokerName2,bytes,0,bytes.length)).getConstructor(Method.class).newInstance(subscriber);
 			} catch (Exception e) {
 				throw new AEBRegisterException(e);
 			} finally {
