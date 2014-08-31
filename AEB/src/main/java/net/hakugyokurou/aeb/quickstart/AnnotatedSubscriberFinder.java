@@ -6,16 +6,28 @@ import java.util.ArrayList;
 
 import net.hakugyokurou.aeb.strategy.ISubscriberStrategy;
 
+/**
+ * AnnotatedSubscriberFinder is a quick-starting implement of ISubscriberStrategy.
+ * It will find the methods which have a given annotation from the handler.
+ * 
+ * @author szszss
+ */
 public class AnnotatedSubscriberFinder implements ISubscriberStrategy{
 	
-	public static final AnnotatedSubscriberFinder QUICKSTART_SINGLETON = new AnnotatedSubscriberFinder(EventSubscriber.class);
+	/**
+	 * The singleton of {@link AnnotatedSubscriberFinder}.
+	 */
+	public static final AnnotatedSubscriberFinder SINGLETON = new AnnotatedSubscriberFinder(EventSubscriber.class);
 	
 	protected final Class<? extends Annotation> annotation;
 	
 	public AnnotatedSubscriberFinder(Class<? extends Annotation> annotation) {
 		this.annotation = annotation;
 	}
-
+	
+	/**
+	 * {@link AnnotatedSubscriberFinder} doesn't depend on the instance.
+	 */
 	public boolean isDependOnInstance() {
 		return false;
 	}
@@ -25,7 +37,7 @@ public class AnnotatedSubscriberFinder implements ISubscriberStrategy{
 		if(handler instanceof Class<?>)
 			klass = (Class<?>)handler;
 		else 
-			klass = handler.getClass();
+			klass = handler.getClass(); //If the handler is an instance, get the class.
 		Method[] methods = klass.getMethods();
 		ArrayList<Method> cache = new ArrayList<Method>(methods.length);
 		for(Method method : methods)

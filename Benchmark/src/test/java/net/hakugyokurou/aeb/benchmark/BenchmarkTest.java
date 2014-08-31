@@ -29,7 +29,7 @@ public class BenchmarkTest {
 			aeb.post(new Event(1));
 		}
 		System.out.println("AEB:  "+(System.nanoTime()-t0));
-		//assertEquals(count, testNumber);
+		assertEquals(count, testNumber);
 	}
 	
 	@Test
@@ -41,7 +41,7 @@ public class BenchmarkTest {
 			guava.post(new Event(1));
 		}
 		System.out.println("Guava:"+(System.nanoTime()-t0));
-		//assertEquals(count, testNumber);
+		assertEquals(count, testNumber);
 	}
 	
 	
@@ -55,7 +55,7 @@ public class BenchmarkTest {
 	private class AEBHandle {
 		@Subscribe
 		public void addNumber(Event e) {
-			//testNumber += e.number;
+			testNumber += e.number;
 		}
 	}
 }

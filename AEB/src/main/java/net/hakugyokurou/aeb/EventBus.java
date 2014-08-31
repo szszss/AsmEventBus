@@ -16,7 +16,7 @@ import net.hakugyokurou.aeb.exception.AEBRegisterException;
 import net.hakugyokurou.aeb.quickstart.AnnotatedSubscriberFinder;
 import net.hakugyokurou.aeb.quickstart.EventSubscriber;
 import net.hakugyokurou.aeb.quickstart.LoggingSubscriberExceptionHandler;
-import net.hakugyokurou.aeb.quickstart.SilentDeadEventHandler;
+import net.hakugyokurou.aeb.quickstart.DiscardDeadEventHandler;
 import net.hakugyokurou.aeb.strategy.EnumHierarchyStrategy;
 import net.hakugyokurou.aeb.strategy.ISubscriberStrategy;
 
@@ -76,15 +76,15 @@ public class EventBus {
 	}
 	
 	public static ISubscriberStrategy getDefaultSubscriberStrategy() {
-		return AnnotatedSubscriberFinder.QUICKSTART_SINGLETON;
+		return AnnotatedSubscriberFinder.SINGLETON;
 	}
 	
 	public static IDeadEventHandler getDefaultDeadEventHandler() {
-		return SilentDeadEventHandler.QUICKSTART_SINGLETON;
+		return DiscardDeadEventHandler.SINGLETON;
 	}
 	
 	public static ISubscriberExceptionHandler getDefaultSubscriberExceptionHandler() {
-		return LoggingSubscriberExceptionHandler.QUICKSTART_SINGLETON;
+		return LoggingSubscriberExceptionHandler.SINGLETON;
 	}
 	
 	public static Logger getDefaultLogger(EventBus eventBus) {

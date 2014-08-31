@@ -20,11 +20,11 @@ public interface ISubscriberStrategy {
 	 * <code>
 	 * EventBus eventBus = ...<br>
 	 * Handler h1 = new Handler();<br>
-	 * handler h2 = new Handler();<br>
+	 * Handler h2 = new Handler();<br>
 	 * eventBus.register(h1);<br>
 	 * eventBus.register(h2);<br>
 	 * </code>
-	 * If event bus get (or may get) different subscribers in two registering, than the subscribers depend on instance.<br><br>
+	 * If event bus get (or may get) different subscribers in two registering, then the subscribers depend on instance.<br><br>
 	 * 
 	 * Depending on instance can be used to implement some special function.
 	 * 

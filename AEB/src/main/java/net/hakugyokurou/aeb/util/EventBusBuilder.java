@@ -10,7 +10,7 @@ import net.hakugyokurou.aeb.auxiliary.IDeadEventHandler;
 import net.hakugyokurou.aeb.auxiliary.ISubscriberExceptionHandler;
 import net.hakugyokurou.aeb.quickstart.AnnotatedSubscriberFinder;
 import net.hakugyokurou.aeb.quickstart.LoggingSubscriberExceptionHandler;
-import net.hakugyokurou.aeb.quickstart.SilentDeadEventHandler;
+import net.hakugyokurou.aeb.quickstart.DiscardDeadEventHandler;
 import net.hakugyokurou.aeb.strategy.EnumDispatchStrategy;
 import net.hakugyokurou.aeb.strategy.EnumHierarchyStrategy;
 import net.hakugyokurou.aeb.strategy.IPriorityStrategy;
@@ -29,9 +29,9 @@ public class EventBusBuilder {
 	protected EnumDispatchStrategy dispatchStrategy = EnumDispatchStrategy.PRIORITY_FIRST;
 	protected EnumHierarchyStrategy hierarchyStrategy = EnumHierarchyStrategy.EXTENDED_FIRST;
 	protected IPriorityStrategy priorityStrategy = null;
-	protected ISubscriberStrategy subscriberStrategy = AnnotatedSubscriberFinder.QUICKSTART_SINGLETON;
-	protected IDeadEventHandler deadEventHandler = SilentDeadEventHandler.QUICKSTART_SINGLETON;
-	protected ISubscriberExceptionHandler exceptionHandler = LoggingSubscriberExceptionHandler.QUICKSTART_SINGLETON;
+	protected ISubscriberStrategy subscriberStrategy = AnnotatedSubscriberFinder.SINGLETON;
+	protected IDeadEventHandler deadEventHandler = DiscardDeadEventHandler.SINGLETON;
+	protected ISubscriberExceptionHandler exceptionHandler = LoggingSubscriberExceptionHandler.SINGLETON;
 	protected Logger logger;
 	
 	public static EventBusBuilder createBuilder() {

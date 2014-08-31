@@ -3,3 +3,7 @@ dependencies {
 	testCompile 'junit:junit:4.8.2'
 	testCompile 'com.google.guava:guava:17.0'
 }
+
+test {
+	jvmArgs '-client -Xbatch -XX:+AggressiveOpts'
+}

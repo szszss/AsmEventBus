@@ -9,7 +9,10 @@ import net.hakugyokurou.aeb.auxiliary.ISubscriberExceptionHandler;
 
 public class LoggingSubscriberExceptionHandler implements ISubscriberExceptionHandler{
 
-	public static final LoggingSubscriberExceptionHandler QUICKSTART_SINGLETON = new LoggingSubscriberExceptionHandler();
+	/**
+	 * The singleton of {@link LoggingSubscriberExceptionHandler}.
+	 */
+	public static final LoggingSubscriberExceptionHandler SINGLETON = new LoggingSubscriberExceptionHandler();
 	
 	public void handleSubscriberException(EventBus eventBus, Object handler,
 			Method subscriber, Object event, Throwable e) {
