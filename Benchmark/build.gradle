@@ -5,5 +5,5 @@ dependencies {
 }
 
 test {
-	jvmArgs '-client -Xbatch -XX:+AggressiveOpts'
+	//jvmArgs '-client -Xbatch -XX:+AggressiveOpts'
 }
