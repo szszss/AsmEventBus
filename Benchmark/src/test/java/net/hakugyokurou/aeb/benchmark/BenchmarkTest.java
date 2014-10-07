@@ -28,7 +28,7 @@ public class BenchmarkTest {
 		for(int i=0;i<count;i++){
 			aeb.post(new Event(1));
 		}
-		System.out.println("AEB:  "+(System.nanoTime()-t0));
+		//System.out.println("AEB:  "+(System.nanoTime()-t0));
 		assertEquals(count, testNumber);
 	}
 	
@@ -40,7 +40,7 @@ public class BenchmarkTest {
 		for(int i=0;i<count;i++){
 			guava.post(new Event(1));
 		}
-		System.out.println("Guava:"+(System.nanoTime()-t0));
+		//System.out.println("Guava:"+(System.nanoTime()-t0));
 		assertEquals(count, testNumber);
 	}
 	

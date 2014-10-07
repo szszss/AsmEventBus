@@ -3,6 +3,8 @@ AsmEventBus
 
 *AsmEventBus* is an implementation of **event system** with asm. It is faster and more powerful {citation needed} than the *EventBus* of Google *Guava*.
 
+[![Build Status of Develop Branch](https://travis-ci.org/szszss/AsmEventBus.svg?branch=develop)](https://travis-ci.org/szszss/AsmEventBus)
+
 What is ASM
 -----------
 *ASM* is a java library, which provides real-time bytecode modifying and generating. Its name is referred to *inline assembler*, <del>although I consider it Aya Shameimaru's Miniskirt...</del>
