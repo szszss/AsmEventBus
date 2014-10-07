@@ -26,7 +26,5 @@ subprojects {
         manifest.attributes provider: 'szszss'
     }
     
-    tasks.withType(Compile) {
-    	options.encoding = "UTF-8"
-    }
+    compileJava{options.encoding = 'utf-8'}
 }
