@@ -8,11 +8,13 @@ import net.hakugyokurou.aeb.EventBus;
 import net.hakugyokurou.aeb.PriorEventBus;
 import net.hakugyokurou.aeb.auxiliary.IDeadEventHandler;
 import net.hakugyokurou.aeb.auxiliary.ISubscriberExceptionHandler;
+import net.hakugyokurou.aeb.quickstart.AnnotatedPriorityJudger;
 import net.hakugyokurou.aeb.quickstart.AnnotatedSubscriberFinder;
 import net.hakugyokurou.aeb.quickstart.LoggingSubscriberExceptionHandler;
 import net.hakugyokurou.aeb.quickstart.DiscardDeadEventHandler;
 import net.hakugyokurou.aeb.strategy.EnumDispatchStrategy;
 import net.hakugyokurou.aeb.strategy.EnumHierarchyStrategy;
+import net.hakugyokurou.aeb.strategy.EnumInvokerGenerator;
 import net.hakugyokurou.aeb.strategy.IPriorityStrategy;
 import net.hakugyokurou.aeb.strategy.ISubscriberStrategy;
 
@@ -28,7 +30,8 @@ public class EventBusBuilder {
 	protected EventBus wrapped;
 	protected EnumDispatchStrategy dispatchStrategy = EnumDispatchStrategy.PRIORITY_FIRST;
 	protected EnumHierarchyStrategy hierarchyStrategy = EnumHierarchyStrategy.EXTENDED_FIRST;
-	protected IPriorityStrategy priorityStrategy = null;
+	protected EnumInvokerGenerator invokerGenerator = EnumInvokerGenerator.getDefault(); //ASM
+	protected IPriorityStrategy priorityStrategy = AnnotatedPriorityJudger.SINGLETON;
 	protected ISubscriberStrategy subscriberStrategy = AnnotatedSubscriberFinder.SINGLETON;
 	protected IDeadEventHandler deadEventHandler = DiscardDeadEventHandler.SINGLETON;
 	protected ISubscriberExceptionHandler exceptionHandler = LoggingSubscriberExceptionHandler.SINGLETON;
@@ -107,13 +110,13 @@ public class EventBusBuilder {
 		EventBus eventBus;
 		switch (type) {
 		case PRIOR_EVENT_BUS:
-			eventBus = new PriorEventBus(name, hierarchyStrategy, subscriberStrategy, priorityStrategy);
+			eventBus = new PriorEventBus(name, hierarchyStrategy, subscriberStrategy, EnumInvokerGenerator.getDefault(), priorityStrategy);
 			break;
 		case ASYNC_EVENT_BUS:
 			eventBus = new AsyncEventBus(name, executor, wrapped);
 			break;
 		default:
-			eventBus = new EventBus(name, hierarchyStrategy, subscriberStrategy);
+			eventBus = new EventBus(name, hierarchyStrategy, subscriberStrategy, EnumInvokerGenerator.getDefault());
 			break; 
 		}
 		eventBus.setDeadEventHandler(deadEventHandler);

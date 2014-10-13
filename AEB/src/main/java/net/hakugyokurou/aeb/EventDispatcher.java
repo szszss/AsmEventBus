@@ -307,7 +307,7 @@ abstract class EventDispatcher{
 				for(;iterator.hasNext();)
 				{
 					Entry entry = iterator.next();
-					entry.invoker.invoke(entry.receiver, event);
+					invokeSomeone(entry, event);
 				}
 				callParent(event, i);
 			}
@@ -327,7 +327,7 @@ abstract class EventDispatcher{
 						for(;iterator.hasNext();)
 						{
 							Entry entry = iterator.next();
-							entry.invoker.invoke(entry.receiver, event);
+							invokeSomeone(entry, event);
 						}
 					}
 					return (!cowals.isEmpty(priority))||parent.callParent(event, priority);
@@ -347,7 +347,7 @@ abstract class EventDispatcher{
 				for(;iterator.hasNext();)
 				{
 					Entry entry = iterator.next();
-					entry.invoker.invoke(entry.receiver, event);
+					invokeSomeone(entry, event);
 				}
 				return true;
 			}

@@ -4,6 +4,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
+import net.hakugyokurou.aeb.strategy.EnumDispatchStrategy;
+import net.hakugyokurou.aeb.strategy.IPriorityStrategy;
 import net.hakugyokurou.aeb.strategy.ISubscriberStrategy;
 
 /**
@@ -12,7 +14,7 @@ import net.hakugyokurou.aeb.strategy.ISubscriberStrategy;
  * 
  * @author szszss
  */
-public class AnnotatedSubscriberFinder implements ISubscriberStrategy{
+public class AnnotatedSubscriberFinder implements ISubscriberStrategy {
 	
 	/**
 	 * The singleton of {@link AnnotatedSubscriberFinder}.

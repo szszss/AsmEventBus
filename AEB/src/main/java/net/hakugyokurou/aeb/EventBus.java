@@ -10,6 +10,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 
+import net.hakugyokurou.aeb.EventInvoker.ReflectedEventInvoker;
 import net.hakugyokurou.aeb.auxiliary.IDeadEventHandler;
 import net.hakugyokurou.aeb.auxiliary.ISubscriberExceptionHandler;
 import net.hakugyokurou.aeb.exception.AEBRegisterException;
@@ -18,6 +19,7 @@ import net.hakugyokurou.aeb.quickstart.EventSubscriber;
 import net.hakugyokurou.aeb.quickstart.LoggingSubscriberExceptionHandler;
 import net.hakugyokurou.aeb.quickstart.DiscardDeadEventHandler;
 import net.hakugyokurou.aeb.strategy.EnumHierarchyStrategy;
+import net.hakugyokurou.aeb.strategy.EnumInvokerGenerator;
 import net.hakugyokurou.aeb.strategy.ISubscriberStrategy;
 
 import org.objectweb.asm.ClassWriter;
@@ -25,6 +27,12 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+/**
+ * EventBus can dispatch events to event listeners which have registered.
+ * 
+ * <h2></h2>
+ * @author szszss
+ */
 public class EventBus {
 	
 	private static final AtomicInteger ID_GENERATOR = new AtomicInteger(0);
@@ -41,6 +49,7 @@ public class EventBus {
 	
 	protected static Map<Method, EventInvoker> eventInvokerCache = Collections.synchronizedMap(new WeakHashMap<Method, EventInvoker>(64));
 	
+	protected final InvokerGenerator invokerGenerator;
 	protected Map<Class<?>, EventDispatcher> eventMappingInvoker = new WeakHashMap<Class<?>, EventDispatcher>();
 	protected ReadWriteLock eventMappingInvokerLock = new ReentrantReadWriteLock();
 	
@@ -55,20 +64,33 @@ public class EventBus {
 		this(name, getDefaultSubscriberStrategy());
 	}
 	
+	public EventBus(String name, EnumInvokerGenerator invokerGenerator) {
+		this(name, EnumHierarchyStrategy.EXTENDED_FIRST, getDefaultSubscriberStrategy(), EnumInvokerGenerator.getDefault());
+	}
+	
 	public EventBus(String name, ISubscriberStrategy subscriberStrategy) {
-		this(name, EnumHierarchyStrategy.EXTENDED_FIRST, subscriberStrategy);
+		this(name, EnumHierarchyStrategy.EXTENDED_FIRST, subscriberStrategy, EnumInvokerGenerator.getDefault());
 	}
 	
 	public EventBus(String name, EnumHierarchyStrategy hierarchyStrategy) {
-		this(name, hierarchyStrategy, getDefaultSubscriberStrategy());
+		this(name, hierarchyStrategy, getDefaultSubscriberStrategy(), EnumInvokerGenerator.getDefault());
 	}
 	
-	public EventBus(String name, EnumHierarchyStrategy hierarchyStrategy, ISubscriberStrategy subscriberStrategy) {
+	public EventBus(String name, EnumHierarchyStrategy hierarchyStrategy, 
+			ISubscriberStrategy subscriberStrategy, EnumInvokerGenerator invokerGenerator) {
 		this.id = ID_GENERATOR.getAndIncrement();
 		this.name = name==null?getDefaultName():name;
 		this.hierarchyStrategy = hierarchyStrategy;
 		this.subscriberStrategy = subscriberStrategy;
 		this.baseOnInstance = subscriberStrategy.isDependOnInstance();
+		switch (invokerGenerator) {
+		case ASM:
+			this.invokerGenerator = new AsmInvokerGenerator();
+			break;
+		default:
+			this.invokerGenerator = new ReflectionInvokerGenerator();
+			break;
+		}
 	}
 	
 	protected synchronized static String getDefaultName() {
@@ -149,7 +171,7 @@ public class EventBus {
 			if(invoker==null)
 			{
 				try {
-					invoker = InvokerGenerator.generateInvoker(klass, method, event);
+					invoker = invokerGenerator.generateInvoker(klass, method, event);
 					eventInvokerCache.put(method, invoker);
 					//invokers[index++] = invoker;
 				} catch (AEBRegisterException e) {
@@ -272,7 +294,19 @@ public class EventBus {
 		}
 	}
 	
-	protected static class InvokerGenerator {
+	protected static abstract class InvokerGenerator {
+		public abstract EventInvoker generateInvoker(Class<?> handler, Method subscriber, Class<?> event) throws AEBRegisterException;
+	}
+	
+	protected static class ReflectionInvokerGenerator extends InvokerGenerator {
+		@Override
+		public EventInvoker generateInvoker(Class<?> handler,
+				Method subscriber, Class<?> event) throws AEBRegisterException {
+			return new ReflectedEventInvoker(subscriber);
+		}
+	}
+	
+	protected static class AsmInvokerGenerator extends InvokerGenerator {
 		
 		protected static String CLASS_NAME_EventInvoker = EventInvoker.class.getName().replace('.', '/');
 		//protected static String CLASS_NAME_Event = Event.class.getName().replace('.', '/');
@@ -280,7 +314,7 @@ public class EventBus {
 		protected static String CONST_PARAMS = "(Ljava/lang/Object;Ljava/lang/Object;)V";
 		protected static String CONST_LV = "Ljava/lang/Object;";
 		
-		public static EventInvoker generateInvoker(Class<?> handler, Method subscriber, Class<?> event) throws AEBRegisterException {
+		public EventInvoker generateInvoker(Class<?> handler, Method subscriber, Class<?> event) throws AEBRegisterException {
 			String handlerName = handler.getName().replace('.', '/');
 			String invokerName = handlerName+"_Invoker_"+subscriber.getName()+"_"+Math.abs(subscriber.hashCode());
 			String invokerName2 = invokerName.replace('/', '.'); //Too silly...Someone makes it smart, please.
@@ -310,7 +344,7 @@ public class EventBus {
 				mv.visitEnd();
 			}
 			{
-				MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "invoke", CONST_PARAMS, null, null);
+				MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "invoke", CONST_PARAMS, null, new String[] { "java/lang/Throwable" });
 				mv.visitCode();
 				Label l0 = new Label();
 				mv.visitLabel(l0);

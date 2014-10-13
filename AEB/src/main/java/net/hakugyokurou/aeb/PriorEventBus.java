@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 
 import net.hakugyokurou.aeb.strategy.EnumDispatchStrategy;
 import net.hakugyokurou.aeb.strategy.EnumHierarchyStrategy;
+import net.hakugyokurou.aeb.strategy.EnumInvokerGenerator;
 import net.hakugyokurou.aeb.strategy.IPriorityStrategy;
 import net.hakugyokurou.aeb.strategy.ISubscriberStrategy;
 
@@ -23,15 +24,20 @@ public class PriorEventBus extends EventBus{
 	}
 	
 	public PriorEventBus(String name, EnumHierarchyStrategy hierarchyStrategy, IPriorityStrategy priorityStrategy) {
-		this(name, hierarchyStrategy, getDefaultSubscriberStrategy(), priorityStrategy);
+		this(name, hierarchyStrategy, getDefaultSubscriberStrategy(), EnumInvokerGenerator.getDefault(), priorityStrategy);
 	}
 	
 	public PriorEventBus(String name, ISubscriberStrategy subscriberStrategy, IPriorityStrategy priorityStrategy) {
-		this(name, EnumHierarchyStrategy.EXTENDED_FIRST, subscriberStrategy, priorityStrategy);
+		this(name, EnumHierarchyStrategy.EXTENDED_FIRST, subscriberStrategy, EnumInvokerGenerator.getDefault(), priorityStrategy);
 	}
 	
-	public PriorEventBus(String name, EnumHierarchyStrategy hierarchyStrategy, ISubscriberStrategy subscriberStrategy, IPriorityStrategy priorityStrategy) {
-		super(name, hierarchyStrategy, subscriberStrategy);
+	public PriorEventBus(String name, EnumInvokerGenerator invokerGenerator, IPriorityStrategy priorityStrategy) {
+		this(name, EnumHierarchyStrategy.EXTENDED_FIRST, getDefaultSubscriberStrategy(), invokerGenerator, priorityStrategy);
+	}
+	
+	public PriorEventBus(String name, EnumHierarchyStrategy hierarchyStrategy, ISubscriberStrategy subscriberStrategy, 
+			EnumInvokerGenerator invokerGenerator, IPriorityStrategy priorityStrategy) {
+		super(name, hierarchyStrategy, subscriberStrategy, invokerGenerator);
 		if(priorityStrategy==null)
 			throw new NullPointerException("PriorityStrategy can't be null.");
 		this.priorities = priorityStrategy.getPriorities();

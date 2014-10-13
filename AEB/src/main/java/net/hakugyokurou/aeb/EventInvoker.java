@@ -1,5 +1,6 @@
 package net.hakugyokurou.aeb;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -9,7 +10,7 @@ import java.util.concurrent.locks.Lock;
 
 public abstract class EventInvoker {
 	
-	private final Method subscriber;
+	protected final Method subscriber;
 	
 	public EventInvoker(Method subscriber) {
 		this.subscriber = subscriber;
@@ -19,9 +20,23 @@ public abstract class EventInvoker {
 		return subscriber;
 	}
 	
-	public abstract void invoke(Object receiver, Object event);
+	public abstract void invoke(Object receiver, Object event) throws Throwable;
 	
-	public static class WWW extends EventInvoker {
+	public static class ReflectedEventInvoker extends EventInvoker{
+
+		public ReflectedEventInvoker(Method subscriber) {
+			super(subscriber);
+			subscriber.setAccessible(true);
+		}
+
+		@Override
+		public void invoke(Object receiver, Object event) throws Throwable{
+			subscriber.invoke(receiver, event);
+		}
+		
+	}
+	
+	/*public static class WWW extends EventInvoker {
 
 		public WWW(Method subscriber) {
 			super(subscriber);
@@ -32,5 +47,5 @@ public abstract class EventInvoker {
 			((EventBus)receiver).register(event);
 		}
 		
-	}
+	}*/
 }

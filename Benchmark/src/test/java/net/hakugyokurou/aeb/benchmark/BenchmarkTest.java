@@ -2,6 +2,8 @@ package net.hakugyokurou.aeb.benchmark;
 
 import static org.junit.Assert.*;
 import net.hakugyokurou.aeb.quickstart.AnnotatedSubscriberFinder;
+import net.hakugyokurou.aeb.strategy.EnumHierarchyStrategy;
+import net.hakugyokurou.aeb.strategy.EnumInvokerGenerator;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +25,7 @@ public class BenchmarkTest {
 	@Test
 	public void testAEB() {
 		net.hakugyokurou.aeb.EventBus aeb = new net.hakugyokurou.aeb.EventBus("",new AnnotatedSubscriberFinder(Subscribe.class));
+		//net.hakugyokurou.aeb.EventBus aeb = new net.hakugyokurou.aeb.EventBus("",EnumHierarchyStrategy.EXTENDED_FIRST, new AnnotatedSubscriberFinder(Subscribe.class), EnumInvokerGenerator.REFLECT);
 		aeb.register(new AEBHandle());
 		long t0 = System.nanoTime();
 		for(int i=0;i<count;i++){
