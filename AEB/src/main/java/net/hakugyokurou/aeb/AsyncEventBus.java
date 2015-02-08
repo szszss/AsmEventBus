@@ -27,7 +27,7 @@ public class AsyncEventBus extends EventBus{
 		if(wrappedEB==null)
 			throw new NullPointerException("Wrapped event bus can't be null.");
 		if(bus instanceof AsyncEventBus)
-			throw new IllegalArgumentException("An AsyncEventBus can't wrap another one.");
+			throw new IllegalArgumentException("AsyncEventBuses can't wrap each other.");
 	}
 	
 	@Override

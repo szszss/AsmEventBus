@@ -233,7 +233,7 @@ public class AsmInvokerGenerator implements InvokerGenerator {
 }
 
 /*
- BACKUP: Old AsmInvokerGenerator which depends ASM-lib
+ BACKUP: Old AsmInvokerGenerator which depends on ASM-lib
  
  public class AsmInvokerGenerator implements InvokerGenerator {
 
