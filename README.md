@@ -9,11 +9,11 @@ What is ASM
 -----------
 *ASM* is a java library, which provides real-time bytecode modifying and generating. Its name is referred to *inline assembler*, <del>although I consider it Aya Shameimaru's Miniskirt...</del>
 
-*AsmEventBus* is powered by *ASM*.
+*AsmEventBus* **was** powered by *ASM*. Now it can run without *ASM*, since it can generate bytecode by itself. However, it keeps the old name to have respect for one of the greatest project in Java.
 
 Why ASM
 -----------
-Well... We know that *Guava EventBus* uses "reflect" to invoke event listeners, right? And we also know reflect is slow. *AsmEventBus* will dynamically generate invoker class, to invoke event listeners by method calling, which is faster than reflect.
+Well... We know that *Guava EventBus* uses "reflect" to invoke event listeners, right? And we also know reflect is slow (JIT optimizing? Do you wanna leave your destiny to *laputan machines*?). *AsmEventBus* will dynamically generate invoker class, to invoke event listeners by method calling, which is faster than reflect.
 
 ```
 　　　　　　　　　　　　　　　　　　　 　 　 　 _」Lﾕﾆ=-=ﾆﾕZ」_
@@ -91,4 +91,33 @@ Sorry but I haven't configure complete... I'm too busy in these days...
 　　　　/ ,ｒ＞､.,_＿ ､＞-‐- ､.ノ　 ﾉ　 　 ｒﾉ、
 　　 　 {_く_ｒ､＿,,.. -､＿,.. -､_＞イ__.＞-く__r'
 　　 　 
+```
+
+How to use
+--------
+
+
+
+```
+　　　　　　　　／ ／　 ／　_,,.. 　-――‐‐-　 ..,,_　　　＼　　｀ミー-彳
+　　　　　　 ／ ／　 ／ ∠ 　-―――――― - ミ　　　 ＼　　　　　＜´
+　　　　　／　/　　.:' ィ´　 　 　　　　　　　　　 　　 ｀Ｙ⌒`'ー-ﾐ　　ヽ               ASM♂EVENT♂BUS
+　＿__／ 　 / 　 /　　　: :/ 　 /　 　 　 　 ＼　 　　 {　　　　　 }ー-ミ.:i :小     Smaller than smaller
+　＼　　　 /  : /　  　: :/ 　 /　:/　　　　　 : ヽ  　八　　　　 /　 　 : :ト､l i
+　 　 ー-ｲ 　: / /　　 : /. :,′: !　　　　 　 :　 | 　  　＼__ .イ　　　. : :|　:!廴_
+　　　　　 |　: ,′ 　　　|　 : :|　　|　　　 : |　 :　 |　　 :| : ';　}　 / :ｲ八　｀丶、
+　　　　　 |　: |: | 　: |　: /| 　:/|　　　 : |　 l　 |  　│:| : :|　|: /: /:| : :.＼　＼
+　　　　　 |　: |: |　　　/ﾄ､/__| / :| ,　　: : |　:j　,'|　 j:│: :| . |: : /: :| :ﾉ: ＞ i
+　　　　　 八: :|: |　 | : |j≧=-|丁 ｢　　 : /| :､|:/ | _/ ∧ イ: :　　: : : : : //　 :/　｜
+　　　 ／ . : : |/|　 | : |{{¨ﾏ{六卞ﾐ 　 : :|│:厶ﾆ|:/|/二V|　:j 　 . :ﾊ: / //　／　 　 !
+　　＜:＿ : イ|: |　小八` 弋..::ｿ　＼　: | ∨"行六 卞癶| :/　. : / ｝／/ :八　　　　|
+　　　　　　　 ｝ | : :|: ＼'　`ー‐　　　＼{　　 弋..::::ン 　 '|/　. : / /7: /イ: : :＼|
+　　　　　　　 |从 : |　八＼　　　　,　　　　　　`　ー‐　 /　: : :/イ/: :｛ : : ＼: :.｀'ｰ.｝
+　　　　　､__ノ　∧ Ⅵ: :丶　 　 　 `　　　　　　　　　　厶イ: :∧.八: : :｀丶、: :､_彡'′ﾘ
+　 　 　 　 ＼ｰ: :人:八: : :|＼　　　　-､ 　 　 　 　 　 ／′ /￣}￣￣￣入＼ﾘ　　　/
+　 　 　 　 　 ￣ 　 〉ハ : |　/丶、　　　　　　　　　イ /: :／＼＿　　　　〉∧_ ＼ ／
+　　　　　　　 　 __/ ヽ∧ ∨ 　/　＞　_....､-‐　´　 ∨／　　　 ＼＞､／　 ∧ ア￣￣＼
+　　　　　　　／ /　　　/＼{　│ / 　 :/　 ＼　 　 ／　　　　 　 / ／　　　　 V　　〉　 　 ＼
+　　　　　　「　 /　 　 /'　　 　 | ,′　 {-ミ　　　　　　 　 　 　　／　　　　　　八 ／
+　　　　　　|　人　 　 |'　 　 　 l/　　　 ＼ Y⌒ - ､　　　　　／ 　 　 　 　 ／ｒ┘
 ```
