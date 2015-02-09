@@ -2,6 +2,7 @@ package net.hakugyokurou.aeb.generator;
 
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
@@ -77,7 +78,7 @@ public class AsmInvokerGenerator implements InvokerGenerator {
 					0, 5, 
 					0, 28
 	};
-	private final static byte[] METHOD_INVOKE = { 
+	private final static byte[] METHOD_INVOKE_PART1 = { 
 		0, 1, //public
 		0, 13, //Name:#13 invoke
 		0, 14, //Desc:#14 (Ljava/lang/Object;Ljava/lang/Object;)V
@@ -86,8 +87,15 @@ public class AsmInvokerGenerator implements InvokerGenerator {
 			0, 0, 0, 78, //Length: 78 bytes
 			0, 2, //Max stack: 2
 			0, 3, //Max local var: 3
-			0, 0, 0, 12, //Code length: 12 bytes
-			43, -64, 0, 18, 44, -64, 0, 20, -74, 0, 24, -79, //Code: cast and invoke reciver.subscriber(castedEvent);
+			0, 0, 0, 12 //Code length: 12 bytes
+	};
+	private final static byte[] METHOD_INVOKE_PART2_NONSTATIC = { 
+			43, -64, 0, 18, 44, -64, 0, 20, -74, 0, 24, -79 //Code: cast and invoke reciver.subscriber(castedEvent);
+	};
+	private final static byte[] METHOD_INVOKE_PART2_STATIC = { 
+			0, 0, 0, 0, 44, -64, 0, 20, -72, 0, 24, -79 //Code: cast and invoke ReciverClass.subscriber(castedEvent);
+	};
+	private final static byte[] METHOD_INVOKE_PART3 = { 
 			0, 0,  //No exception
 			0, 2,  //2 attrs
 				0, 29, //ATTR: LocalVarTable
@@ -180,7 +188,8 @@ public class AsmInvokerGenerator implements InvokerGenerator {
 		int variableLength = invokerName.length() + 
 				invokerDesc.length() + handlerName.length() + eventName.length() +
 				subscriberName.length() + subscriberDesc.length() + 6 + 7*2;
-		int overallLength = HEADER.length + variableLength + CONSTANTPOOL.length + ZLICH.length + METHOD_INIT.length + METHOD_INVOKE.length;
+		int overallLength = HEADER.length + variableLength + CONSTANTPOOL.length + ZLICH.length + METHOD_INIT.length 
+				+ METHOD_INVOKE_PART1.length + METHOD_INVOKE_PART2_NONSTATIC.length + METHOD_INVOKE_PART3.length;
 		int pos = 0;
 		byte[] bytes = new byte[overallLength];
 		//Header
@@ -208,7 +217,14 @@ public class AsmInvokerGenerator implements InvokerGenerator {
 		System.arraycopy(METHOD_INIT, 0, bytes, pos, METHOD_INIT.length);
 		pos += METHOD_INIT.length;
 		//Method:invoke
-		System.arraycopy(METHOD_INVOKE, 0, bytes, pos, METHOD_INVOKE.length);
+		System.arraycopy(METHOD_INVOKE_PART1, 0, bytes, pos, METHOD_INVOKE_PART1.length);
+		pos += METHOD_INVOKE_PART1.length;
+		if((subscriber.getModifiers() & Modifier.STATIC) > 0)
+			System.arraycopy(METHOD_INVOKE_PART2_STATIC, 0, bytes, pos, METHOD_INVOKE_PART2_STATIC.length);
+		else
+			System.arraycopy(METHOD_INVOKE_PART2_NONSTATIC, 0, bytes, pos, METHOD_INVOKE_PART2_NONSTATIC.length);
+		pos += METHOD_INVOKE_PART2_STATIC.length;  //Nonstatic one has a same length than static one
+		System.arraycopy(METHOD_INVOKE_PART3, 0, bytes, pos, METHOD_INVOKE_PART3.length);
 		
 		Method define = null;
 		Object klass;

@@ -6,21 +6,21 @@ import java.lang.reflect.Method;
 import net.hakugyokurou.aeb.strategy.EnumDispatchStrategy;
 import net.hakugyokurou.aeb.strategy.IPriorityStrategy;
 
-public class AnnotatedPriorityJudger implements IPriorityStrategy{
+public class AnnotatedPriorityJudge implements IPriorityStrategy{
 
 	/**
-	 * The singleton of {@link AnnotatedPriorityJudger}.
+	 * The singleton of {@link AnnotatedPriorityJudge}.
 	 */
-	public static final AnnotatedPriorityJudger SINGLETON = new AnnotatedPriorityJudger(EventSubscriber.class);
+	public static final AnnotatedPriorityJudge SINGLETON = new AnnotatedPriorityJudge(EventSubscriber.class);
 	
 	protected final Class<? extends EventSubscriber> annotation;
 	protected final EnumDispatchStrategy dispatchStrategy;
 	
-	public AnnotatedPriorityJudger(Class<? extends EventSubscriber> annotation) {
+	public AnnotatedPriorityJudge(Class<? extends EventSubscriber> annotation) {
 		this(annotation, EnumDispatchStrategy.PRIORITY_FIRST);
 	}
 	
-	public AnnotatedPriorityJudger(Class<? extends EventSubscriber> annotation, EnumDispatchStrategy dispatchStrategy) {
+	public AnnotatedPriorityJudge(Class<? extends EventSubscriber> annotation, EnumDispatchStrategy dispatchStrategy) {
 		this.annotation = annotation;
 		this.dispatchStrategy = dispatchStrategy;
 	}

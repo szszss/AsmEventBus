@@ -2,6 +2,14 @@ package net.hakugyokurou.aeb.strategy;
 
 import java.lang.reflect.Method;
 
+/**
+ * ISubscriberStrategy describes that how event bus finds subscribers from the instance or class.<br/>
+ * It has a default implement: AnnotatedSubscriberFinder.
+ * 
+ * @author szszss
+ * 
+ * @see AnnotatedSubscriberFinder
+ */
 public interface ISubscriberStrategy {
 	
 	/**

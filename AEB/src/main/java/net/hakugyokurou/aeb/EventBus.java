@@ -10,7 +10,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 
-import net.hakugyokurou.aeb.EventInvoker.ReflectedEventInvoker;
 import net.hakugyokurou.aeb.auxiliary.IDeadEventHandler;
 import net.hakugyokurou.aeb.auxiliary.ISubscriberExceptionHandler;
 import net.hakugyokurou.aeb.exception.AEBRegisterException;
@@ -28,13 +27,53 @@ import net.hakugyokurou.aeb.strategy.ISubscriberStrategy;
 /**
  * EventBus can dispatch events to event listeners which have registered.
  * 
- * <h2></h2>
+ * <h2>How to use</h2>
+ * <p>(1).Create a instance of event bus.<br/>
+ * (2).Register subscriber.<br/>
+ * (3).Post events.</p>
+ * 
+ * <h2>How to create</h2>
+ * <p>You can just create the event bus by its constructor, or build it by {@link net.hakugyokurou.aeb.util.EventBusBuilder}.<br/>
+ * There are 6 constructors in EventBus:<br/>
+ * <i>(No param)</i>: An auto-generating name and default settings.<br/>
+ * <i>String</i>: Use a custom name and default settings.<br/>
+ * <i>String, EnumInvokerGenerator</i>: Use a custom name, custom invoker generator and default other settings.<br/>
+ * <i>String, ISubscriberStrategy</i>: Use a custom name, custom subscriber strategy and default other settings.<br/>
+ * <i>String, EnumHierarchyStrategy</i>: Use a custom name, custom hierarchy strategy and default other settings.<br/>
+ * <i>String, EnumHierarchyStrategy, ISubscriberStrategy, EnumInvokerGenerator</i>: 
+ * Use a custom name and custom settings.<br/><br/>
+ * To get more information about settings (strategies), check the <b>see also</b>.</p>
+ * 
+ * <h2>How to register subscriber</h2>
+ * <p>AsmEventBus allows user customize the strategy of subscriber. It has provided a preset strategy: 
+ * {@link net.hakugyokurou.aeb.quickstart.AnnotatedSubscriberFinder} as a <b>default</b> subscriber strategy. 
+ * It will find the methods which have a special annotation. If you want to use it, put a 
+ * {@link net.hakugyokurou.aeb.quickstart.EventSubscriber} annotation in your subscriber method. 
+ * The method must be public, non-abstract, no return and has (and only has) one non-primitive parameter. 
+ * The parameter will be considered <b>acceptable event</b>. When post events, if the type of a event is equal to the 
+ * type of acceptable event, the event will be sent to this method (However, even if they are not equal, if the type of 
+ * acceptable event is the super class of type of event, it will also be sent).</p>
+ * <p>To register a subscriber, uses:<br/>
+ * <code>eventBus.register(subscriber);</code><br/>
+ * The subscriber can be a instance of subscriber class, and it can also be the subscriber class, since event bus <b>allows 
+ * static subscriber method</b>.<br/>
+ * You can use eventbus.unregister to remove subscriber.</p>
+ * 
+ * <h2>How to post event</h2>
+ * <p>You can use <code>eventbus.post(event)</code> to post event. This event bus is <b>sync event bus</b>, whose subscriber will be 
+ * invoke in poster's thread. If you want the subscribers run in another thread, use {@link AsyncEventBus}.</p>
+ * 
  * @author szszss
+ * 
+ * @see ISubscriberStrategy
+ * @see EnumHierarchyStrategy
+ * @see EnumInvokerGenerator
+ * @see IDeadEventHandler
+ * @see ISubscriberExceptionHandler
  */
 public class EventBus {
 	
 	private static final AtomicInteger ID_GENERATOR = new AtomicInteger(0);
-	
 	protected final transient int id;
 	protected final String name;
 	protected final EnumHierarchyStrategy hierarchyStrategy;

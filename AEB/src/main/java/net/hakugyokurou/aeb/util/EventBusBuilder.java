@@ -11,7 +11,7 @@ import net.hakugyokurou.aeb.EventBus;
 import net.hakugyokurou.aeb.PriorEventBus;
 import net.hakugyokurou.aeb.auxiliary.IDeadEventHandler;
 import net.hakugyokurou.aeb.auxiliary.ISubscriberExceptionHandler;
-import net.hakugyokurou.aeb.quickstart.AnnotatedPriorityJudger;
+import net.hakugyokurou.aeb.quickstart.AnnotatedPriorityJudge;
 import net.hakugyokurou.aeb.quickstart.AnnotatedSubscriberFinder;
 import net.hakugyokurou.aeb.quickstart.LoggingSubscriberExceptionHandler;
 import net.hakugyokurou.aeb.quickstart.DiscardDeadEventHandler;
@@ -56,7 +56,7 @@ public class EventBusBuilder {
 	protected EnumDispatchStrategy dispatchStrategy = EnumDispatchStrategy.PRIORITY_FIRST;
 	protected EnumHierarchyStrategy hierarchyStrategy = EnumHierarchyStrategy.EXTENDED_FIRST;
 	protected EnumInvokerGenerator invokerGenerator = EnumInvokerGenerator.getDefault(); //ASM
-	protected IPriorityStrategy priorityStrategy = AnnotatedPriorityJudger.SINGLETON;
+	protected IPriorityStrategy priorityStrategy = AnnotatedPriorityJudge.SINGLETON;
 	protected ISubscriberStrategy subscriberStrategy = AnnotatedSubscriberFinder.SINGLETON;
 	protected IDeadEventHandler deadEventHandler = DiscardDeadEventHandler.SINGLETON;
 	protected ISubscriberExceptionHandler exceptionHandler = LoggingSubscriberExceptionHandler.SINGLETON;
@@ -154,7 +154,7 @@ public class EventBusBuilder {
 	}
 	
 	/**
-	 * Set the priority strategy for prioritized event bus. The default value is the singleton of {@link AnnotatedPriorityJudger}.
+	 * Set the priority strategy for prioritized event bus. The default value is the singleton of {@link AnnotatedPriorityJudge}.
 	 * @param priorityStrategy The priority strategy of prioritized event bus
 	 * @return Builder
 	 * @see IPriorityStrategy

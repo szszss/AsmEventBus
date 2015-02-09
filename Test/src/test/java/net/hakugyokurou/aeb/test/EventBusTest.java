@@ -73,6 +73,17 @@ public class EventBusTest {
 		assertEquals(10, testNumber);
 	}
 	
+	@Test
+	public void testEBStaticMethod() {
+		EventBus subject = new EventBus();
+		subject.register(StaticMethodHandler.class);
+		subject.post(Integer.valueOf(9));
+		assertEquals(9, StaticMethodHandler.num);
+		subject.register(new StaticMethodHandler());
+		subject.post(Integer.valueOf(6));
+		assertEquals(6, StaticMethodHandler.num);
+	}
+	
 	private class Handler1 {	
 		@EventSubscriber
 		public void setNumber(Integer i) {
@@ -106,5 +117,16 @@ public class EventBusTest {
 		public void handleDeadEvent(EventBus eventBus, Object event) {
 			testNumber = 10;
 		}	
+	}
+	
+	private static class StaticMethodHandler {
+		private static int num;
+		@EventSubscriber
+		public static void setNumber(Integer i) {
+			num = i;
+		}
+		public static int getNumber() {
+			return num;
+		}
 	}
 }
