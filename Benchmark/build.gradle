@@ -1,7 +1,7 @@
 dependencies {
 	compile project(':AEB')
 	testCompile 'junit:junit:4.8.2'
-	testCompile 'com.google.guava:guava:17.0'
+	testCompile 'com.google.guava:guava:18.0'
 }
 
 test {

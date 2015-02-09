@@ -1,7 +1,6 @@
 package net.hakugyokurou.aeb.test;
 
 import static org.junit.Assert.*;
-import net.hakugyokurou.aeb.DeadEvent;
 import net.hakugyokurou.aeb.EventBus;
 import net.hakugyokurou.aeb.auxiliary.IDeadEventHandler;
 import net.hakugyokurou.aeb.quickstart.EventSubscriber;

@@ -1,9 +1,8 @@
-
 dependencies {
 }
 
 jar {
-        baseName = 'asmeventbus'
+        baseName = 'aeb'
 }
 
 uploadArchives {
